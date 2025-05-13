@@ -1,0 +1,114 @@
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class SpyApp {
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final int SMS_PERMISSION_REQUEST_CODE = 2;
+    private static final int PHONE_STATE_PERMISSION_REQUEST_CODE = 3;
+
+    private Context context;
+    private LocationManager locationManager;
+    private TelephonyManager telephonyManager;
+    private SmsManager smsManager;
+
+    public SpyApp(Context context) {
+        this.context = context;
+        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        smsManager = SmsManager.getDefault();
+    }
+
+    public void startSpying() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((android.app.Activity) context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            startLocationTracking();
+        }
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((android.app.Activity) context, new String[]{Manifest.permission.READ_SMS}, SMS_PERMISSION_REQUEST_CODE);
+        } else {
+            startSmsTracking();
+        }
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((android.app.Activity) context, new String[]{Manifest.permission.READ_PHONE_STATE}, PHONE_STATE_PERMISSION_REQUEST_CODE);
+        } else {
+            startPhoneStateTracking();
+        }
+    }
+
+    private void startLocationTracking() {
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d("SpyApp", "Location: " + location.getLatitude() + ", " + location.getLongitude());
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+            }
+        };
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+    }
+
+    private void startSmsTracking() {
+        // Implement SMS tracking logic here
+    }
+
+    private void startPhoneStateTracking() {
+        // Implement phone state tracking logic here
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case LOCATION_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startLocationTracking();
+                } else {
+                    Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case SMS_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startSmsTracking();
+                } else {
+                    Toast.makeText(context, "SMS permission denied", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PHONE_STATE_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startPhoneStateTracking();
+                } else {
+                    Toast.makeText(context, "Phone state permission denied", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
+    }
+}
